@@ -14,15 +14,15 @@ class Event {
   }
 
   static async create(eventData) {
-    const { title, description, event_date, location } = eventData;
+    const { title, event_date, location, fine } = eventData;
     
     // Create the event
     const eventQuery = `
-      INSERT INTO events (title, description, event_date, location)
+      INSERT INTO events (title, event_date, location, fine)
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
-    const eventResult = await db.query(eventQuery, [title, description, event_date, location]);
+    const eventResult = await db.query(eventQuery, [title, event_date, location, fine]);
     const newEvent = eventResult.rows[0];
 
     // Get all students
@@ -53,14 +53,14 @@ class Event {
   }
 
   static async update(id, eventData) {
-    const { title, description, event_date, location } = eventData;
+    const { title, event_date, location, fine } = eventData;
     const query = `
       UPDATE events 
-      SET title = $1, description = $2, event_date = $3, location = $4
+      SET title = $1, event_date = $2, location = $3, fine = $4
       WHERE id = $5
       RETURNING *
     `;
-    const result = await db.query(query, [title, description, event_date, location, id]);
+    const result = await db.query(query, [title, event_date, location, fine, id]);
     return result.rows[0];
   }
 

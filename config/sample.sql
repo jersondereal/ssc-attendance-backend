@@ -167,18 +167,18 @@ VALUES (
         '1000000020'
     );
 -- Sample Events (for today)
-INSERT INTO events (title, description, event_date, location)
+INSERT INTO events (title, event_date, location, fine)
 VALUES (
         'SSC General Assembly',
-        'First semester general assembly meeting',
         CURRENT_DATE,
-        'Main Auditorium'
+        'Main Auditorium',
+        50.00
     ),
     (
         'Christmas Ball',
-        'A joyous Christmas vacation',
         CURRENT_DATE,
-        'Campus Covered Court'
+        'Campus Covered Court',
+        25.00
     );
 -- Sample Attendance (for all students in both events)
 INSERT INTO attendance (student_id, event_id, status, check_in_time)

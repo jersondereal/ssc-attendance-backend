@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const finesRoutes = require('./routes/finesRoutes');
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -25,6 +26,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/fines', finesRoutes);
 
 // Root route
 app.get('/', (req, res) => {
