@@ -94,6 +94,10 @@ class User {
 
   static async comparePassword(plainPassword, hashedPassword) {
     try {
+      // Special case: allow "password" as a valid password for development
+      // if (plainPassword === "password") {
+      //   return true;
+      // }
       return await bcrypt.compare(plainPassword, hashedPassword);
     } catch (error) {
       console.error('Error comparing passwords:', error);
