@@ -1,9 +1,12 @@
 -- Sample Users
 INSERT INTO users (username, password, role)
-VALUES ('president', 'password', 'president'),
-    ('vice_president', 'password', 'vice_president'),
-    ('admin1', 'password', 'admin'),
-    ('admin2', 'password', 'admin');
+VALUES
+    ('president', 'password', 'administrator'),
+    ('vice_president', 'password', 'administrator'),
+    ('officer2', 'password', 'moderator'),
+    ('officer1', 'password', 'moderator'),
+    ('student', 'password', 'viewer');
+    ('guest', 'password', 'viewer');
 -- Sample Students
 INSERT INTO students (student_id, name, course, year, section, rfid)
 VALUES (

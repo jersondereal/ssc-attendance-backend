@@ -10,11 +10,12 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (
         role IN (
-            'president',
-            -- SSC President
-            'vice_president',
-            -- SSC Vice President
-            'admin' -- System Administrator
+            'president',           -- SSC President
+            'vice_president',      -- SSC Vice President
+            'admin',               -- System Administrator (legacy)
+            'administrator',       -- New: Administrator
+            'moderator',           -- New: Moderator
+            'viewer'               -- New: Viewer
         )
     ),
     last_login TIMESTAMP WITH TIME ZONE,
@@ -50,7 +51,7 @@ CREATE TABLE attendance (
     student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('Present', 'Absent', 'Excused')),
-ni    is_paid BOOLEAN DEFAULT false NOT NULL,
+    is_paid BOOLEAN DEFAULT false NOT NULL,
     check_in_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
