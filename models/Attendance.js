@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require("../config/database");
 
 class Attendance {
   static async findByEvent(eventId) {
@@ -37,10 +37,13 @@ class Attendance {
   }
 
   static async createBulk(eventId, studentIds) {
-    const values = studentIds.map(studentId => 
-      `('${studentId}', ${eventId}, 'Absent', CURRENT_TIMESTAMP)`
-    ).join(',');
-    
+    const values = studentIds
+      .map(
+        (studentId) =>
+          `('${studentId}', ${eventId}, 'Absent', CURRENT_TIMESTAMP)`
+      )
+      .join(",");
+
     const query = `
       INSERT INTO attendance (student_id, event_id, status, check_in_time)
       VALUES ${values}
@@ -73,6 +76,7 @@ class Attendance {
         a.status,
         a.is_paid,
         e.title as event_title,
+        e.event_date,
         e.fine as amount
       FROM attendance a
       JOIN events e ON a.event_id = e.id
@@ -108,4 +112,4 @@ class Attendance {
   }
 }
 
-module.exports = Attendance; 
+module.exports = Attendance;

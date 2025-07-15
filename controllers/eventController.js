@@ -1,4 +1,4 @@
-const Event = require('../models/Event');
+const Event = require("../models/Event");
 
 const eventController = {
   async getAllEvents(req, res) {
@@ -6,7 +6,9 @@ const eventController = {
       const events = await Event.findAll();
       res.json(events);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching events', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error fetching events", error: error.message });
     }
   },
 
@@ -14,32 +16,90 @@ const eventController = {
     try {
       const event = await Event.findById(req.params.id);
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        return res.status(404).json({ message: "Event not found" });
       }
       res.json(event);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching event', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error fetching event", error: error.message });
     }
   },
 
   async createEvent(req, res) {
     try {
-      const event = await Event.create(req.body);
+      const {
+        title,
+        event_date,
+        location,
+        fine,
+        courses,
+        sections,
+        schoolYears,
+      } = req.body;
+
+      // Validate required fields
+      if (!title || !event_date || !location || fine === undefined) {
+        return res.status(400).json({
+          message: "Missing required fields: title, event_date, location, fine",
+        });
+      }
+
+      const event = await Event.create({
+        title,
+        event_date,
+        location,
+        fine,
+        courses,
+        sections,
+        schoolYears,
+      });
+
       res.status(201).json(event);
     } catch (error) {
-      res.status(500).json({ message: 'Error creating event', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error creating event", error: error.message });
     }
   },
 
   async updateEvent(req, res) {
     try {
-      const event = await Event.update(req.params.id, req.body);
+      const {
+        title,
+        event_date,
+        location,
+        fine,
+        courses,
+        sections,
+        schoolYears,
+      } = req.body;
+
+      // Validate required fields
+      if (!title || !event_date || !location || fine === undefined) {
+        return res.status(400).json({
+          message: "Missing required fields: title, event_date, location, fine",
+        });
+      }
+
+      const event = await Event.update(req.params.id, {
+        title,
+        event_date,
+        location,
+        fine,
+        courses,
+        sections,
+        schoolYears,
+      });
+
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        return res.status(404).json({ message: "Event not found" });
       }
       res.json(event);
     } catch (error) {
-      res.status(500).json({ message: 'Error updating event', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error updating event", error: error.message });
     }
   },
 
@@ -47,11 +107,13 @@ const eventController = {
     try {
       const event = await Event.delete(req.params.id);
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        return res.status(404).json({ message: "Event not found" });
       }
-      res.json({ message: 'Event deleted successfully' });
+      res.json({ message: "Event deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: 'Error deleting event', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error deleting event", error: error.message });
     }
   },
 
@@ -60,9 +122,12 @@ const eventController = {
       const events = await Event.findByDate(req.params.date);
       res.json(events);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching events by date', error: error.message });
+      res.status(500).json({
+        message: "Error fetching events by date",
+        error: error.message,
+      });
     }
-  }
+  },
 };
 
-module.exports = eventController; 
+module.exports = eventController;
