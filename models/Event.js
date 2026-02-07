@@ -14,15 +14,9 @@ class Event {
   }
 
   static async create(eventData) {
-    const {
-      title,
-      event_date,
-      location,
-      fine,
-      courses,
-      sections,
-      schoolYears,
-    } = eventData;
+    const { title, event_date, location, fine, sections, schoolYears } =
+      eventData;
+    const colleges = eventData.colleges ?? eventData.courses;
 
     // Create the event
     const eventQuery = `
@@ -36,7 +30,7 @@ class Event {
       location,
       fine,
       JSON.stringify(
-        courses || { all: false, bsit: false, bshm: false, bscrim: false }
+        colleges || { all: false, bsit: false, bshm: false, bscrim: false }
       ),
       JSON.stringify(
         sections || { all: false, a: false, b: false, c: false, d: false }
@@ -47,24 +41,24 @@ class Event {
     ]);
     const newEvent = eventResult.rows[0];
 
-    // Get students based on selected courses, sections, and school years
+    // Get students based on selected colleges, sections, and school years
     let studentsQuery =
-      "SELECT id, student_id, course, year, section FROM students WHERE 1=1";
+      "SELECT id, student_id, college, year, section FROM students WHERE 1=1";
     const studentsParams = [];
     let paramCount = 1;
 
-    // Filter by courses if not "all" selected
-    if (courses && !courses.all) {
-      const selectedCourses = Object.keys(courses).filter(
-        (key) => key !== "all" && courses[key]
+    // Filter by colleges if not "all" selected
+    if (colleges && !colleges.all) {
+      const selectedColleges = Object.keys(colleges).filter(
+        (key) => key !== "all" && colleges[key]
       );
-      if (selectedCourses.length > 0) {
-        const courseConditions = selectedCourses
-          .map(() => `course = $${paramCount++}`)
+      if (selectedColleges.length > 0) {
+        const collegeConditions = selectedColleges
+          .map(() => `college = $${paramCount++}`)
           .join(" OR ");
-        studentsQuery += ` AND (${courseConditions})`;
+        studentsQuery += ` AND (${collegeConditions})`;
         studentsParams.push(
-          ...selectedCourses.map((course) => course.toLowerCase())
+          ...selectedColleges.map((college) => college.toLowerCase())
         );
       }
     }
@@ -134,15 +128,9 @@ class Event {
   }
 
   static async update(id, eventData) {
-    const {
-      title,
-      event_date,
-      location,
-      fine,
-      courses,
-      sections,
-      schoolYears,
-    } = eventData;
+    const { title, event_date, location, fine, sections, schoolYears } =
+      eventData;
+    const colleges = eventData.colleges ?? eventData.courses;
     const query = `
       UPDATE events 
       SET title = $1, event_date = $2, location = $3, fine = $4, 
@@ -156,7 +144,7 @@ class Event {
       location,
       fine,
       JSON.stringify(
-        courses || { all: false, bsit: false, bshm: false, bscrim: false }
+        colleges || { all: false, bsit: false, bshm: false, bscrim: false }
       ),
       JSON.stringify(
         sections || { all: false, a: false, b: false, c: false, d: false }

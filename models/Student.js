@@ -14,16 +14,17 @@ class Student {
   }
 
   static async create(studentData) {
-    const { student_id, name, course, year, section, rfid } = studentData;
+    const { student_id, name, year, section, rfid } = studentData;
+    const college = studentData.college ?? studentData.course;
     const query = `
-      INSERT INTO students (student_id, name, course, year, section, rfid)
+      INSERT INTO students (student_id, name, college, year, section, rfid)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
     const result = await db.query(query, [
       student_id,
       name,
-      course,
+      college,
       year,
       section,
       rfid,
@@ -32,16 +33,17 @@ class Student {
   }
 
   static async update(studentId, studentData) {
-    const { name, course, year, section, rfid } = studentData;
+    const { name, year, section, rfid } = studentData;
+    const college = studentData.college ?? studentData.course;
     const query = `
       UPDATE students 
-      SET name = $1, course = $2, year = $3, section = $4, rfid = $5
+      SET name = $1, college = $2, year = $3, section = $4, rfid = $5
       WHERE student_id = $6
       RETURNING *
     `;
     const result = await db.query(query, [
       name,
-      course,
+      college,
       year,
       section,
       rfid,
@@ -69,10 +71,10 @@ class Student {
     return result.rows;
   }
 
-  static async findByCourse(course) {
+  static async findByCollege(college) {
     const query =
-      "SELECT * FROM students WHERE course = $1 ORDER BY student_id";
-    const result = await db.query(query, [course]);
+      "SELECT * FROM students WHERE college = $1 ORDER BY student_id";
+    const result = await db.query(query, [college]);
     return result.rows;
   }
 

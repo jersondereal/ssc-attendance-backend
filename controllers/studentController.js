@@ -1,10 +1,26 @@
 const Student = require("../models/Student");
+const College = require("../models/College");
+
+const normalizeStudentInput = (body) => ({
+  ...body,
+  college: body.college ?? body.course,
+});
+
+const formatStudentResponse = (student) => {
+  if (!student) return student;
+  const college = student.college ?? student.course;
+  return {
+    ...student,
+    college,
+    course: college,
+  };
+};
 
 const studentController = {
   async getAllStudents(req, res) {
     try {
       const students = await Student.findAll();
-      res.json(students);
+      res.json(students.map(formatStudentResponse));
     } catch (error) {
       res
         .status(500)
@@ -18,7 +34,7 @@ const studentController = {
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
-      res.json(student);
+      res.json(formatStudentResponse(student));
     } catch (error) {
       res
         .status(500)
@@ -28,8 +44,16 @@ const studentController = {
 
   async createStudent(req, res) {
     try {
-      const student = await Student.create(req.body);
-      res.status(201).json(student);
+      const input = normalizeStudentInput(req.body);
+      const collegeCode = input.college?.toLowerCase?.()?.trim?.();
+      if (collegeCode) {
+        const college = await College.findByCode(collegeCode);
+        if (!college) {
+          return res.status(400).json({ message: "Invalid college code" });
+        }
+      }
+      const student = await Student.create(input);
+      res.status(201).json(formatStudentResponse(student));
     } catch (error) {
       res
         .status(500)
@@ -39,11 +63,19 @@ const studentController = {
 
   async updateStudent(req, res) {
     try {
-      const student = await Student.update(req.params.id, req.body);
+      const input = normalizeStudentInput(req.body);
+      const collegeCode = input.college?.toLowerCase?.()?.trim?.();
+      if (collegeCode) {
+        const college = await College.findByCode(collegeCode);
+        if (!college) {
+          return res.status(400).json({ message: "Invalid college code" });
+        }
+      }
+      const student = await Student.update(req.params.id, input);
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
-      res.json(student);
+      res.json(formatStudentResponse(student));
     } catch (error) {
       res
         .status(500)
@@ -99,10 +131,22 @@ const studentController = {
     }
   },
 
+  async getStudentsByCollege(req, res) {
+    try {
+      const students = await Student.findByCollege(req.params.college);
+      res.json(students.map(formatStudentResponse));
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching students by college",
+        error: error.message,
+      });
+    }
+  },
+
   async getStudentsByCourse(req, res) {
     try {
-      const students = await Student.findByCourse(req.params.course);
-      res.json(students);
+      const students = await Student.findByCollege(req.params.course);
+      res.json(students.map(formatStudentResponse));
     } catch (error) {
       res.status(500).json({
         message: "Error fetching students by course",
@@ -146,7 +190,8 @@ const studentController = {
         student: {
           student_id: student.student_id,
           name: student.name,
-          course: student.course,
+          college: student.college ?? student.course,
+          course: student.college ?? student.course,
           year: student.year,
           section: student.section,
         },

@@ -5,7 +5,9 @@ const studentController = require("../controllers/studentController");
 // Get all students
 router.get("/", studentController.getAllStudents);
 
-// Get students by course
+// Get students by college
+router.get("/college/:college", studentController.getStudentsByCollege);
+// Backward compatibility: Get students by course
 router.get("/course/:course", studentController.getStudentsByCourse);
 
 // Get student attendance metrics

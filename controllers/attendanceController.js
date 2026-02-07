@@ -18,12 +18,10 @@ const attendanceController = {
       const attendance = await Attendance.findByStudent(req.params.studentId);
       res.json(attendance);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Error fetching student attendance",
-          error: error.message,
-        });
+      res.status(500).json({
+        message: "Error fetching student attendance",
+        error: error.message,
+      });
     }
   },
 
@@ -61,12 +59,10 @@ const attendanceController = {
       const attendance = await Attendance.createBulk(eventId, studentIds);
       res.status(201).json(attendance);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Error initializing attendance",
-          error: error.message,
-        });
+      res.status(500).json({
+        message: "Error initializing attendance",
+        error: error.message,
+      });
     }
   },
 
@@ -75,12 +71,10 @@ const attendanceController = {
       const stats = await Attendance.getAttendanceStats(req.params.eventId);
       res.json(stats);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Error fetching attendance stats",
-          error: error.message,
-        });
+      res.status(500).json({
+        message: "Error fetching attendance stats",
+        error: error.message,
+      });
     }
   },
 
@@ -111,18 +105,17 @@ const attendanceController = {
         student: {
           studentId: student.student_id,
           name: student.name,
-          course: student.course,
+          college: student.college ?? student.course,
+          course: student.college ?? student.course,
           year: student.year,
           section: student.section,
         },
       });
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Error updating attendance by RFID",
-          error: error.message,
-        });
+      res.status(500).json({
+        message: "Error updating attendance by RFID",
+        error: error.message,
+      });
     }
   },
 };

@@ -1,10 +1,25 @@
 const Event = require("../models/Event");
 
+const normalizeEventInput = (body) => ({
+  ...body,
+  colleges: body.colleges ?? body.courses,
+});
+
+const formatEventResponse = (event) => {
+  if (!event) return event;
+  const colleges = event.colleges ?? event.courses;
+  return {
+    ...event,
+    colleges,
+    courses: colleges,
+  };
+};
+
 const eventController = {
   async getAllEvents(req, res) {
     try {
       const events = await Event.findAll();
-      res.json(events);
+      res.json(events.map(formatEventResponse));
     } catch (error) {
       res
         .status(500)
@@ -18,7 +33,7 @@ const eventController = {
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      res.json(event);
+      res.json(formatEventResponse(event));
     } catch (error) {
       res
         .status(500)
@@ -28,15 +43,9 @@ const eventController = {
 
   async createEvent(req, res) {
     try {
-      const {
-        title,
-        event_date,
-        location,
-        fine,
-        courses,
-        sections,
-        schoolYears,
-      } = req.body;
+      const { title, event_date, location, fine, sections, schoolYears } =
+        req.body;
+      const colleges = req.body.colleges ?? req.body.courses;
 
       // Validate required fields
       if (!title || !event_date || !location || fine === undefined) {
@@ -50,12 +59,12 @@ const eventController = {
         event_date,
         location,
         fine,
-        courses,
+        colleges,
         sections,
         schoolYears,
       });
 
-      res.status(201).json(event);
+      res.status(201).json(formatEventResponse(event));
     } catch (error) {
       res
         .status(500)
@@ -65,15 +74,9 @@ const eventController = {
 
   async updateEvent(req, res) {
     try {
-      const {
-        title,
-        event_date,
-        location,
-        fine,
-        courses,
-        sections,
-        schoolYears,
-      } = req.body;
+      const { title, event_date, location, fine, sections, schoolYears } =
+        req.body;
+      const colleges = req.body.colleges ?? req.body.courses;
 
       // Validate required fields
       if (!title || !event_date || !location || fine === undefined) {
@@ -87,7 +90,7 @@ const eventController = {
         event_date,
         location,
         fine,
-        courses,
+        colleges,
         sections,
         schoolYears,
       });
@@ -95,7 +98,7 @@ const eventController = {
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      res.json(event);
+      res.json(formatEventResponse(event));
     } catch (error) {
       res
         .status(500)
@@ -120,7 +123,7 @@ const eventController = {
   async getEventsByDate(req, res) {
     try {
       const events = await Event.findByDate(req.params.date);
-      res.json(events);
+      res.json(events.map(formatEventResponse));
     } catch (error) {
       res.status(500).json({
         message: "Error fetching events by date",

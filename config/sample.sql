@@ -8,7 +8,7 @@ VALUES
     ('student', 'password', 'viewer');
     ('guest', 'password', 'viewer');
 -- Sample Students
-INSERT INTO students (student_id, name, course, year, section, rfid)
+INSERT INTO students (student_id, name, college, year, section, rfid)
 VALUES (
         '21-0001',
         'John Smith',
