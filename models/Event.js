@@ -1,5 +1,85 @@
 const db = require("../config/database");
 
+const getSelectedKeys = (selection = {}) =>
+  Object.keys(selection).filter((key) => key !== "all" && selection[key]);
+
+const getFilteredStudentIds = async ({ colleges, sections, schoolYears }) => {
+  let studentsQuery = "SELECT student_id FROM students WHERE 1=1";
+  const studentsParams = [];
+  let paramCount = 1;
+
+  // Filter by colleges if not "all" selected
+  if (colleges && !colleges.all) {
+    const selectedColleges = getSelectedKeys(colleges);
+    if (selectedColleges.length > 0) {
+      const collegeConditions = selectedColleges
+        .map(() => `college = $${paramCount++}`)
+        .join(" OR ");
+      studentsQuery += ` AND (${collegeConditions})`;
+      studentsParams.push(
+        ...selectedColleges.map((college) => college.toLowerCase())
+      );
+    }
+  }
+
+  // Filter by sections if not "all" selected
+  if (sections && !sections.all) {
+    const selectedSections = getSelectedKeys(sections);
+    if (selectedSections.length > 0) {
+      const sectionConditions = selectedSections
+        .map(() => `section = $${paramCount++}`)
+        .join(" OR ");
+      studentsQuery += ` AND (${sectionConditions})`;
+      studentsParams.push(
+        ...selectedSections.map((section) => section.toLowerCase())
+      );
+    }
+  }
+
+  // Filter by school years if not "all" selected
+  if (schoolYears && !schoolYears.all) {
+    const selectedYears = getSelectedKeys(schoolYears);
+    if (selectedYears.length > 0) {
+      const yearConditions = selectedYears
+        .map(() => `year = $${paramCount++}`)
+        .join(" OR ");
+      studentsQuery += ` AND (${yearConditions})`;
+      studentsParams.push(...selectedYears);
+    }
+  }
+
+  const studentsResult = await db.query(studentsQuery, studentsParams);
+  return studentsResult.rows.map((student) => student.student_id);
+};
+
+const syncAttendanceForEvent = async (eventId, filters) => {
+  const eligibleStudentIds = await getFilteredStudentIds(filters);
+
+  if (eligibleStudentIds.length === 0) {
+    await db.query("DELETE FROM attendance WHERE event_id = $1", [eventId]);
+    return;
+  }
+
+  await db.query(
+    `
+      DELETE FROM attendance
+      WHERE event_id = $1
+        AND NOT (student_id = ANY($2::varchar[]))
+    `,
+    [eventId, eligibleStudentIds]
+  );
+
+  await db.query(
+    `
+      INSERT INTO attendance (student_id, event_id, status, check_in_time)
+      SELECT student_id, $2, 'Absent', CURRENT_TIMESTAMP
+      FROM UNNEST($1::varchar[]) AS student_id
+      ON CONFLICT (student_id, event_id) DO NOTHING
+    `,
+    [eligibleStudentIds, eventId]
+  );
+};
+
 class Event {
   static async findAll() {
     const query = "SELECT * FROM events ORDER BY event_date DESC";
@@ -41,88 +121,7 @@ class Event {
     ]);
     const newEvent = eventResult.rows[0];
 
-    // Get students based on selected colleges, sections, and school years
-    let studentsQuery =
-      "SELECT id, student_id, college, year, section FROM students WHERE 1=1";
-    const studentsParams = [];
-    let paramCount = 1;
-
-    // Filter by colleges if not "all" selected
-    if (colleges && !colleges.all) {
-      const selectedColleges = Object.keys(colleges).filter(
-        (key) => key !== "all" && colleges[key]
-      );
-      if (selectedColleges.length > 0) {
-        const collegeConditions = selectedColleges
-          .map(() => `college = $${paramCount++}`)
-          .join(" OR ");
-        studentsQuery += ` AND (${collegeConditions})`;
-        studentsParams.push(
-          ...selectedColleges.map((college) => college.toLowerCase())
-        );
-      }
-    }
-
-    // Filter by sections if not "all" selected
-    if (sections && !sections.all) {
-      const selectedSections = Object.keys(sections).filter(
-        (key) => key !== "all" && sections[key]
-      );
-      if (selectedSections.length > 0) {
-        const sectionConditions = selectedSections
-          .map(() => `section = $${paramCount++}`)
-          .join(" OR ");
-        studentsQuery += ` AND (${sectionConditions})`;
-        studentsParams.push(
-          ...selectedSections.map((section) => section.toLowerCase())
-        );
-      }
-    }
-
-    // Filter by school years if not "all" selected
-    if (schoolYears && !schoolYears.all) {
-      const selectedYears = Object.keys(schoolYears).filter(
-        (key) => key !== "all" && schoolYears[key]
-      );
-      if (selectedYears.length > 0) {
-        const yearConditions = selectedYears
-          .map(() => `year = $${paramCount++}`)
-          .join(" OR ");
-        studentsQuery += ` AND (${yearConditions})`;
-        studentsParams.push(...selectedYears);
-      }
-    }
-
-    const studentsResult = await db.query(studentsQuery, studentsParams);
-    const students = studentsResult.rows;
-
-    // Create attendance records for filtered students
-    if (students.length > 0) {
-      const values = [];
-      const attendanceParams = [];
-      let attendanceParamCount = 1;
-
-      students.forEach((student) => {
-        values.push(
-          `($${attendanceParamCount}, $${attendanceParamCount + 1}, $${
-            attendanceParamCount + 2
-          }, $${attendanceParamCount + 3})`
-        );
-        attendanceParams.push(
-          student.student_id,
-          newEvent.id,
-          "Absent",
-          new Date()
-        );
-        attendanceParamCount += 4;
-      });
-
-      const attendanceQuery = `
-        INSERT INTO attendance (student_id, event_id, status, check_in_time)
-        VALUES ${values.join(", ")}
-      `;
-      await db.query(attendanceQuery, attendanceParams);
-    }
+    await syncAttendanceForEvent(newEvent.id, { colleges, sections, schoolYears });
 
     return newEvent;
   }
@@ -154,7 +153,14 @@ class Event {
       ),
       id,
     ]);
-    return result.rows[0];
+    const updatedEvent = result.rows[0];
+    if (!updatedEvent) {
+      return undefined;
+    }
+
+    await syncAttendanceForEvent(id, { colleges, sections, schoolYears });
+
+    return updatedEvent;
   }
 
   static async delete(id) {
