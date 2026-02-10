@@ -14,11 +14,12 @@ class Student {
   }
 
   static async create(studentData) {
-    const { student_id, name, year, section, rfid } = studentData;
+    const { student_id, name, year, section, rfid, profile_image_url } =
+      studentData;
     const college = studentData.college ?? studentData.course;
     const query = `
-      INSERT INTO students (student_id, name, college, year, section, rfid)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO students (student_id, name, college, year, section, rfid, profile_image_url)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
     const result = await db.query(query, [
@@ -28,17 +29,18 @@ class Student {
       year,
       section,
       rfid,
+      profile_image_url ?? null,
     ]);
     return result.rows[0];
   }
 
   static async update(studentId, studentData) {
-    const { name, year, section, rfid } = studentData;
+    const { name, year, section, rfid, profile_image_url } = studentData;
     const college = studentData.college ?? studentData.course;
     const query = `
       UPDATE students 
-      SET name = $1, college = $2, year = $3, section = $4, rfid = $5
-      WHERE student_id = $6
+      SET name = $1, college = $2, year = $3, section = $4, rfid = $5, profile_image_url = $6
+      WHERE student_id = $7
       RETURNING *
     `;
     const result = await db.query(query, [
@@ -47,6 +49,7 @@ class Student {
       year,
       section,
       rfid,
+      profile_image_url ?? null,
       studentId,
     ]);
     return result.rows[0];

@@ -61,6 +61,7 @@ CREATE TABLE students (
     year VARCHAR(2) NOT NULL,
     section VARCHAR(2) NOT NULL,
     rfid VARCHAR(50) UNIQUE,
+    profile_image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT valid_student_id CHECK (student_id ~ '^\d{2}-\d{4}$') -- Ensures format YY-XXXX

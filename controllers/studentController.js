@@ -1,10 +1,40 @@
 const Student = require("../models/Student");
 const College = require("../models/College");
 
-const normalizeStudentInput = (body) => ({
-  ...body,
-  college: body.college ?? body.course,
-});
+const normalizeStudentInput = (body) => {
+  const rawRfid = body?.rfid;
+  const trimmedRfid = typeof rawRfid === "string" ? rawRfid.trim() : rawRfid;
+  const rawProfileUrl = body?.profile_image_url;
+  const trimmedProfileUrl =
+    typeof rawProfileUrl === "string" ? rawProfileUrl.trim() : rawProfileUrl;
+
+  // Capitalize student name
+  const rawName = body?.name;
+  const capitalizeName = (name) => {
+    if (typeof name !== "string") return name;
+    return name
+      .split(" ")
+      .map(
+        (word) =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join(" ");
+  };
+  const capitalizedName = capitalizeName(rawName);
+
+  return {
+    ...body,
+    name: capitalizedName,
+    college: body.college ?? body.course,
+    rfid: trimmedRfid ? trimmedRfid : null,
+    profile_image_url:
+      rawProfileUrl === undefined
+        ? undefined
+        : trimmedProfileUrl
+        ? trimmedProfileUrl
+        : null,
+  };
+};
 
 const formatStudentResponse = (student) => {
   if (!student) return student;
@@ -55,6 +85,7 @@ const studentController = {
       const student = await Student.create(input);
       res.status(201).json(formatStudentResponse(student));
     } catch (error) {
+      console.error(error);
       res
         .status(500)
         .json({ message: "Error creating student", error: error.message });
@@ -77,6 +108,7 @@ const studentController = {
       }
       res.json(formatStudentResponse(student));
     } catch (error) {
+      console.error(error);
       res
         .status(500)
         .json({ message: "Error updating student", error: error.message });
