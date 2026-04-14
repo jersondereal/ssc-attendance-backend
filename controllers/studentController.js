@@ -58,6 +58,35 @@ const studentController = {
     }
   },
 
+  async getStudentsPaginated(req, res) {
+    try {
+      const { page = 1, limit = 50, search = "", college = "all", year = "all", section = "all", sortKey = "student_id", sortDir = "asc" } = req.query;
+      const { rows, total } = await Student.findPaginated({
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        search,
+        college,
+        year,
+        section,
+        sortKey,
+        sortDir,
+      });
+      res.json({ data: rows.map(formatStudentResponse), total, page: parseInt(page, 10), limit: parseInt(limit, 10) });
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching students", error: error.message });
+    }
+  },
+
+  async getStudentIds(req, res) {
+    try {
+      const { search = "", college = "all", year = "all", section = "all" } = req.query;
+      const ids = await Student.findAllIds({ search, college, year, section });
+      res.json({ ids });
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching student IDs", error: error.message });
+    }
+  },
+
   async getStudentById(req, res) {
     try {
       const student = await Student.findById(req.params.id);

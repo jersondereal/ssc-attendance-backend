@@ -7,6 +7,72 @@ class Student {
     return result.rows;
   }
 
+  static async findPaginated({ page = 1, limit = 50, search = "", college = "all", year = "all", section = "all", sortKey = "student_id", sortDir = "asc" } = {}) {
+    const validSortKeys = ["student_id", "name", "college", "year", "section"];
+    const safeSortKey = validSortKeys.includes(sortKey) ? sortKey : "student_id";
+    const safeSortDir = sortDir === "desc" ? "DESC" : "ASC";
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+    const params = [];
+
+    if (search) {
+      params.push(`%${search.toLowerCase()}%`);
+      conditions.push(`(LOWER(student_id) LIKE $${params.length} OR LOWER(name) LIKE $${params.length} OR LOWER(college) LIKE $${params.length})`);
+    }
+    if (college !== "all") {
+      params.push(college.toLowerCase());
+      conditions.push(`LOWER(college) = $${params.length}`);
+    }
+    if (year !== "all") {
+      params.push(year);
+      conditions.push(`year = $${params.length}`);
+    }
+    if (section !== "all") {
+      params.push(section.toLowerCase());
+      conditions.push(`LOWER(section) = $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const countResult = await db.query(`SELECT COUNT(*) FROM students ${where}`, params);
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    params.push(limit, offset);
+    const dataResult = await db.query(
+      `SELECT * FROM students ${where} ORDER BY ${safeSortKey} ${safeSortDir} LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+
+    return { rows: dataResult.rows, total };
+  }
+
+  static async findAllIds({ search = "", college = "all", year = "all", section = "all" } = {}) {
+    const conditions = [];
+    const params = [];
+
+    if (search) {
+      params.push(`%${search.toLowerCase()}%`);
+      conditions.push(`(LOWER(student_id) LIKE $${params.length} OR LOWER(name) LIKE $${params.length} OR LOWER(college) LIKE $${params.length})`);
+    }
+    if (college !== "all") {
+      params.push(college.toLowerCase());
+      conditions.push(`LOWER(college) = $${params.length}`);
+    }
+    if (year !== "all") {
+      params.push(year);
+      conditions.push(`year = $${params.length}`);
+    }
+    if (section !== "all") {
+      params.push(section.toLowerCase());
+      conditions.push(`LOWER(section) = $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const result = await db.query(`SELECT student_id FROM students ${where} ORDER BY student_id`, params);
+    return result.rows.map((r) => r.student_id);
+  }
+
   static async findById(studentId) {
     const query = "SELECT * FROM students WHERE student_id = $1";
     const result = await db.query(query, [studentId]);

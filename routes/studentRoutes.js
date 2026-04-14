@@ -5,6 +5,12 @@ const studentController = require("../controllers/studentController");
 // Get all students
 router.get("/", studentController.getAllStudents);
 
+// Get paginated students with filters/search/sort
+router.get("/paginated", studentController.getStudentsPaginated);
+
+// Get all student IDs matching filters (for select all)
+router.get("/ids", studentController.getStudentIds);
+
 // Get students by college
 router.get("/college/:college", studentController.getStudentsByCollege);
 // Backward compatibility: Get students by course
