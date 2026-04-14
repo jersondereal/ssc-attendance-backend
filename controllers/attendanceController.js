@@ -13,6 +13,21 @@ const attendanceController = {
     }
   },
 
+  async getEventAttendancePaginated(req, res) {
+    try {
+      const { eventId } = req.params;
+      const { page = 1, limit = 50, search = "", college = "all", year = "all", section = "all", status = "all", sortKey = "name", sortDir = "asc" } = req.query;
+      const { rows, total } = await Attendance.findByEventPaginated(eventId, {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        search, college, year, section, status, sortKey, sortDir,
+      });
+      res.json({ data: rows, total, page: parseInt(page, 10), limit: parseInt(limit, 10) });
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching attendance", error: error.message });
+    }
+  },
+
   async getStudentAttendance(req, res) {
     try {
       const attendance = await Attendance.findByStudent(req.params.studentId);

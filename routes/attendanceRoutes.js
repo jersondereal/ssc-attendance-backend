@@ -5,6 +5,9 @@ const attendanceController = require('../controllers/attendanceController');
 // Get attendance for an event
 router.get('/event/:eventId', attendanceController.getEventAttendance);
 
+// Get paginated attendance for an event with filters/search/sort
+router.get('/event/:eventId/paginated', attendanceController.getEventAttendancePaginated);
+
 // Get attendance for a student
 router.get('/student/:studentId', attendanceController.getStudentAttendance);
 
