@@ -12,6 +12,7 @@ const overviewRoutes = require("./routes/overviewRoutes");
 const collegeRoutes = require("./routes/collegeRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
@@ -37,6 +38,7 @@ app.use("/api/overview", overviewRoutes);
 app.use("/api/colleges", collegeRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Root route
 app.get("/", (req, res) => {

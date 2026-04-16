@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'essu-ssc-secret-key';
+const JWT_SECRET = 'jinky143';
 
 const authMiddleware = (req, res, next) => {
   // Get token from header
