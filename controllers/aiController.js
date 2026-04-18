@@ -94,12 +94,17 @@ const aiController = {
       const extractSql = (text) => {
         const fence = text.match(/```(?:sql)?\s*([\s\S]*?)```/i);
         if (fence) return fence[1].trim();
-        const idx = text.search(/\bSELECT\b/i);
-        return idx !== -1 ? text.slice(idx).trim() : text.trim();
+        // Prefer WITH (CTE) over SELECT so the full query is preserved
+        const withIdx = text.search(/\bWITH\b/i);
+        const selectIdx = text.search(/\bSELECT\b/i);
+        if (withIdx !== -1 && (selectIdx === -1 || withIdx < selectIdx)) {
+          return text.slice(withIdx).trim();
+        }
+        return selectIdx !== -1 ? text.slice(selectIdx).trim() : text.trim();
       };
 
       const isValidSql = (sql) =>
-        /^SELECT\b/i.test(sql) &&
+        /^(SELECT|WITH)\b/i.test(sql) &&
         !/\b(INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|GRANT|REVOKE)\b/i.test(sql);
 
       // Up to 2 attempts — retry once with an explicit nudge if first attempt fails
@@ -130,6 +135,7 @@ const aiController = {
         queryResult = await db.query(rawSql);
       } catch (dbErr) {
         console.error('AI query execution error:', dbErr.message);
+        console.error('Failed SQL:\n', rawSql);
         return res.status(200).json({
           reply: "I generated a query but it failed to execute. Please try rephrasing your question or ask something else.",
         });
@@ -200,7 +206,14 @@ const aiController = {
         });
       }
       console.error('AI chat error:', error);
-      return res.status(500).json({ message: 'An error occurred while processing your request.' });
+      if (error?.status === 503) {
+        return res.status(200).json({ reply: 'The AI model is currently overloaded with requests. Please try again in a moment.' });
+      }
+      if (error?.status === 500) {
+        return res.status(200).json({ reply: 'The AI service encountered an internal error. Please try again.' });
+      }
+      const detail = error?.message ? ` (${error.message.split('\n')[0]})` : '';
+      return res.status(500).json({ message: `An error occurred while processing your request.${detail}` });
     }
   },
 };
