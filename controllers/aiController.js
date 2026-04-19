@@ -84,7 +84,9 @@ const aiController = {
         '4. Never use exact equality (=) when filtering text fields like college, name, or title based on user input. Always use ILIKE with a wildcard: e.g. college ILIKE \'%engineering%\'.\n' +
         '5. If the question involves attendance counts, always JOIN attendance with students and/or events as needed.\n' +
         '6. Always SELECT enough context columns to make the answer meaningful. For example: if answering about an event, include event title AND event_date AND location. If answering about a student, include name AND college AND year. If answering about counts, include the count AND the label it belongs to.\n' +
-        'Return ONLY the raw SQL — no explanation, no markdown, no extra text. Your entire response must be a valid SQL query starting with SELECT.';
+        '7. Never select profile_image_url, created_at, or updated_at columns unless the user explicitly asks for them.\n' +
+        'IMPORTANT: If the user\'s message is a greeting, thanks, chitchat, or anything that is NOT a question about the attendance data, output the single word NOT_A_QUERY and nothing else.\n' +
+        'Return ONLY the raw SQL — no explanation, no markdown, no extra text. Your entire response must be a valid SQL query starting with SELECT or WITH.';
 
       const sqlModel = genAI.getGenerativeModel({
         model: 'gemini-2.5-flash',
@@ -115,7 +117,16 @@ const aiController = {
           ? message.trim()
           : `${message.trim()}\n\nIMPORTANT: Your previous response was not valid SQL. You MUST respond with only a raw SELECT statement and nothing else.`;
         sqlResult = await sqlChat.sendMessage(prompt);
-        rawSql = extractSql(sqlResult.response.text().trim());
+        const rawText = sqlResult.response.text().trim();
+
+        // Non-data message (greeting, chitchat, etc.)
+        if (/^NOT_A_QUERY\b/i.test(rawText)) {
+          return res.status(200).json({
+            reply: "I can only answer questions about attendance data, events, students, and fines. Try asking something like \"How many students attended the last event?\"",
+          });
+        }
+
+        rawSql = extractSql(rawText);
         if (isValidSql(rawSql)) break;
         if (attempt === 2) {
           return res.status(200).json({
@@ -158,8 +169,7 @@ const aiController = {
           '- Never add blank lines between bullet list items.\n' +
           '- Keep responses concise — do not repeat the question or add unnecessary preamble.\n' +
           '- This system is based in the Philippines — always use PHP (₱) for monetary values, never USD or $.\n' +
-          '- If the query result is an empty array, say "No records found." — never say the data does not exist or imply the system has no such data.\n' +
-          '- If a result contains an image URL (e.g. profile_image_url), render it as a markdown image: ![image](url).',
+          '- If the query result is an empty array, say "No records found." — never say the data does not exist or imply the system has no such data.',
       });
 
       const formatResult = await formatModel.generateContent(
