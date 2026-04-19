@@ -85,7 +85,8 @@ const aiController = {
         '5. If the question involves attendance counts, always JOIN attendance with students and/or events as needed.\n' +
         '6. Always SELECT enough context columns to make the answer meaningful. For example: if answering about an event, include event title AND event_date AND location. If answering about a student, include name AND college AND year. If answering about counts, include the count AND the label it belongs to.\n' +
         '7. Never select profile_image_url, created_at, or updated_at columns unless the user explicitly asks for them.\n' +
-        'IMPORTANT: If the user\'s message is a greeting, thanks, chitchat, or anything that is NOT a question about the attendance data, output the single word NOT_A_QUERY and nothing else.\n' +
+        'IMPORTANT: If the user\'s message is a greeting, farewell, or thanks (e.g. "hi", "hello", "thanks", "bye"), output GREETING and nothing else.\n' +
+        'IMPORTANT: If the user\'s message is a question or topic completely unrelated to this attendance system (e.g. weather, cooking, travel, general knowledge), output OFF_TOPIC and nothing else.\n' +
         'Return ONLY the raw SQL — no explanation, no markdown, no extra text. Your entire response must be a valid SQL query starting with SELECT or WITH.';
 
       const sqlModel = genAI.getGenerativeModel({
@@ -119,10 +120,19 @@ const aiController = {
         sqlResult = await sqlChat.sendMessage(prompt);
         const rawText = sqlResult.response.text().trim();
 
-        // Non-data message (greeting, chitchat, etc.)
-        if (/^NOT_A_QUERY\b/i.test(rawText)) {
+        if (/^GREETING\b/i.test(rawText)) {
+          const greetModel = genAI.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            systemInstruction: 'You are a friendly AI assistant for a student attendance management system. Chat naturally and keep responses short.',
+          });
+          const greetChat = greetModel.startChat({ history: geminiHistory });
+          const greetResult = await greetChat.sendMessage(message.trim());
+          return res.status(200).json({ reply: greetResult.response.text().trim() });
+        }
+
+        if (/^OFF_TOPIC\b/i.test(rawText)) {
           return res.status(200).json({
-            reply: "I can only answer questions about attendance data, events, students, and fines. Try asking something like \"How many students attended the last event?\"",
+            reply: "I'm only able to help with questions about this attendance system — events, students, attendance records, and fines. Try asking something like \"How many students attended the last event?\"",
           });
         }
 
@@ -169,7 +179,8 @@ const aiController = {
           '- Never add blank lines between bullet list items.\n' +
           '- Keep responses concise — do not repeat the question or add unnecessary preamble.\n' +
           '- This system is based in the Philippines — always use PHP (₱) for monetary values, never USD or $.\n' +
-          '- If the query result is an empty array, say "No records found." — never say the data does not exist or imply the system has no such data.',
+          '- If the query result is an empty array, say "No records found." — never say the data does not exist or imply the system has no such data.\n' +
+          '- If a result contains an image URL (e.g. profile_image_url), render it as a markdown image: ![image](url).',
       });
 
       const formatResult = await formatModel.generateContent(
