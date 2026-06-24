@@ -23,7 +23,7 @@ const eventController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching events", error: error.message });
+        .json({ message: "Error fetching events" });
     }
   },
 
@@ -37,7 +37,7 @@ const eventController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching event", error: error.message });
+        .json({ message: "Error fetching event" });
     }
   },
 
@@ -68,7 +68,7 @@ const eventController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error creating event", error: error.message });
+        .json({ message: "Error creating event" });
     }
   },
 
@@ -102,7 +102,7 @@ const eventController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error updating event", error: error.message });
+        .json({ message: "Error updating event" });
     }
   },
 
@@ -116,7 +116,7 @@ const eventController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error deleting event", error: error.message });
+        .json({ message: "Error deleting event" });
     }
   },
 

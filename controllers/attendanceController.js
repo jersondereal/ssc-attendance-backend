@@ -9,7 +9,7 @@ const attendanceController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching attendance", error: error.message });
+        .json({ message: "Error fetching attendance" });
     }
   },
 
@@ -24,7 +24,7 @@ const attendanceController = {
       });
       res.json({ data: rows, total, page: parseInt(page, 10), limit: parseInt(limit, 10) });
     } catch (error) {
-      res.status(500).json({ message: "Error fetching attendance", error: error.message });
+      res.status(500).json({ message: "Error fetching attendance" });
     }
   },
 
@@ -35,7 +35,7 @@ const attendanceController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching student attendance",
-        error: error.message,
+
       });
     }
   },
@@ -61,7 +61,7 @@ const attendanceController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error updating attendance", error: error.message });
+        .json({ message: "Error updating attendance" });
     }
   },
 
@@ -76,7 +76,7 @@ const attendanceController = {
     } catch (error) {
       res.status(500).json({
         message: "Error initializing attendance",
-        error: error.message,
+
       });
     }
   },
@@ -88,7 +88,7 @@ const attendanceController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching attendance stats",
-        error: error.message,
+
       });
     }
   },
@@ -129,7 +129,7 @@ const attendanceController = {
     } catch (error) {
       res.status(500).json({
         message: "Error updating attendance by RFID",
-        error: error.message,
+
       });
     }
   },

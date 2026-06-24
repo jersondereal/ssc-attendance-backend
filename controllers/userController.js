@@ -1,8 +1,9 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// Secret key for JWT signing - in production, use environment variable
-const JWT_SECRET = 'jinky143'; // TODO: Move to environment variable
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
+
+const VALID_ROLES = ['administrator', 'moderator', 'viewer', 'president', 'vice_president'];
 
 const userController = {
   async login(req, res) {
@@ -63,7 +64,7 @@ const userController = {
       const users = await User.findAll();
       res.json(users);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching users', error: error.message });
+      res.status(500).json({ message: 'Error fetching users' });
     }
   },
 
@@ -74,6 +75,14 @@ const userController = {
       // Validate request body
       if (!username || !password || !role) {
         return res.status(400).json({ message: 'Username, password, and role are required' });
+      }
+
+      if (!VALID_ROLES.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters' });
       }
 
       // Check if username already exists
@@ -94,7 +103,7 @@ const userController = {
       });
     } catch (error) {
       console.error('Error creating user:', error);
-      res.status(500).json({ message: 'Error creating user', error: error.message });
+      res.status(500).json({ message: 'Error creating user' });
     }
   },
 
@@ -109,6 +118,14 @@ const userController = {
         return res.status(400).json({ message: 'Username already exists' });
       }
 
+      if (role && !VALID_ROLES.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+      }
+
+      if (password && password.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters' });
+      }
+
       // Update user with optional password update
       const user = await User.update(id, { username, password, role });
       if (!user) {
@@ -118,7 +135,7 @@ const userController = {
       res.json(user);
     } catch (error) {
       console.error('Error updating user:', error);
-      res.status(500).json({ message: 'Error updating user', error: error.message });
+      res.status(500).json({ message: 'Error updating user' });
     }
   },
 
@@ -133,7 +150,7 @@ const userController = {
 
       res.json({ message: 'User deleted successfully' });
     } catch (error) {
-      res.status(500).json({ message: 'Error deleting user', error: error.message });
+      res.status(500).json({ message: 'Error deleting user' });
     }
   }
 };

@@ -48,7 +48,7 @@ const settingsController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching general settings",
-        error: error.message,
+
       });
     }
   },
@@ -82,7 +82,7 @@ const settingsController = {
     } catch (error) {
       res.status(500).json({
         message: "Error updating general settings",
-        error: error.message,
+
       });
     }
   },
@@ -100,7 +100,7 @@ const settingsController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching system settings",
-        error: error.message,
+
       });
     }
   },
@@ -140,7 +140,7 @@ const settingsController = {
     } catch (error) {
       res.status(500).json({
         message: "Error updating system settings",
-        error: error.message,
+
       });
     }
   },
@@ -158,7 +158,7 @@ const settingsController = {
         ]);
 
       res.json({
-        users: users.rows,
+        users: users.rows.map(({ password, ...u }) => u),
         settings: settings.rows,
         colleges: colleges.rows,
         students: students.rows,
@@ -169,7 +169,7 @@ const settingsController = {
     } catch (error) {
       res.status(500).json({
         message: "Error creating backup",
-        error: error.message,
+
       });
     }
   },
@@ -302,7 +302,7 @@ const settingsController = {
       await client.query("ROLLBACK");
       res.status(500).json({
         message: "Error restoring backup",
-        error: error.message,
+
       });
     } finally {
       client.release();

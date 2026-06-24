@@ -1,7 +1,7 @@
 const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 12;
 
 class User {
   static async findByUsername(username) {

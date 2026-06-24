@@ -54,7 +54,7 @@ const overviewController = {
         .status(500)
         .json({
           message: "Error fetching student stats",
-          error: error.message,
+
         });
     }
   },

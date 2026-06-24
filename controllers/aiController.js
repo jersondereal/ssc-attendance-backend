@@ -28,7 +28,6 @@ async function addTokensUsed(tokens) {
 
 // Compact schema injected into SQL-generation prompt only
 const SCHEMA_CONTEXT = `
-users(id int, username varchar, role varchar, last_login timestamptz, created_at timestamptz, updated_at timestamptz)
 students(id int, student_id varchar PK, name varchar, college varchar, year varchar, section varchar, rfid varchar, profile_image_url text, created_at timestamptz, updated_at timestamptz)
 events(id int, title varchar, event_date date, location varchar, fine decimal, courses jsonb, sections jsonb, school_years jsonb, created_at timestamptz, updated_at timestamptz)
 attendance(id int, student_id varchar FK→students.student_id, event_id int FK→events.id, status varchar('Present'|'Absent'|'Excused'), is_paid bool, check_in_time timestamptz, created_at timestamptz, updated_at timestamptz)
@@ -150,21 +149,25 @@ const aiController = {
         return res.status(200).json({ reply: 'Only read-only queries are permitted.' });
       }
 
+      // Block queries that reference the users table
+      if (/\busers\b/i.test(rawSql)) {
+        return res.status(200).json({ reply: 'Queries on user account data are not permitted.' });
+      }
+
       // --- Execute query ---
       let queryResult;
       try {
         queryResult = await db.query(rawSql);
       } catch (dbErr) {
         console.error('AI query execution error:', dbErr.message);
-        console.error('Failed SQL:\n', rawSql);
         return res.status(200).json({
           reply: "I generated a query but it failed to execute. Please try rephrasing your question or ask something else.",
         });
       }
 
       const totalRows = queryResult.rows.length;
-      // Cap result at 100 rows before passing to Gemini
-      const rows = queryResult.rows.slice(0, 100);
+      // Cap result at 100 rows before passing to Gemini; strip password hashes
+      const rows = queryResult.rows.slice(0, 100).map(({ password, ...row }) => row);
       const overflowNote = totalRows > 100 ? `\n(Note: ${totalRows} total rows found; showing first 100.)` : '';
       const resultPayload = `${JSON.stringify(rows)}${overflowNote}`;
 

@@ -54,7 +54,7 @@ const studentController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching students", error: error.message });
+        .json({ message: "Error fetching students" });
     }
   },
 
@@ -73,7 +73,7 @@ const studentController = {
       });
       res.json({ data: rows.map(formatStudentResponse), total, page: parseInt(page, 10), limit: parseInt(limit, 10) });
     } catch (error) {
-      res.status(500).json({ message: "Error fetching students", error: error.message });
+      res.status(500).json({ message: "Error fetching students" });
     }
   },
 
@@ -83,7 +83,7 @@ const studentController = {
       const ids = await Student.findAllIds({ search, college, year, section });
       res.json({ ids });
     } catch (error) {
-      res.status(500).json({ message: "Error fetching student IDs", error: error.message });
+      res.status(500).json({ message: "Error fetching student IDs" });
     }
   },
 
@@ -97,7 +97,7 @@ const studentController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching student", error: error.message });
+        .json({ message: "Error fetching student" });
     }
   },
 
@@ -117,7 +117,7 @@ const studentController = {
       console.error(error);
       res
         .status(500)
-        .json({ message: "Error creating student", error: error.message });
+        .json({ message: "Error creating student" });
     }
   },
 
@@ -140,7 +140,7 @@ const studentController = {
       console.error(error);
       res
         .status(500)
-        .json({ message: "Error updating student", error: error.message });
+        .json({ message: "Error updating student" });
     }
   },
 
@@ -154,7 +154,7 @@ const studentController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error deleting student", error: error.message });
+        .json({ message: "Error deleting student" });
     }
   },
 
@@ -187,7 +187,7 @@ const studentController = {
     } catch (error) {
       res.status(500).json({
         message: "Error deleting students",
-        error: error.message,
+
       });
     }
   },
@@ -199,7 +199,7 @@ const studentController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching students by college",
-        error: error.message,
+
       });
     }
   },
@@ -211,7 +211,7 @@ const studentController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching students by course",
-        error: error.message,
+
       });
     }
   },
@@ -228,8 +228,6 @@ const studentController = {
 
       // Get attendance records
       const attendanceRecords = await Student.getAttendanceMetrics(studentId);
-
-      console.log(attendanceRecords);
 
       // Calculate metrics
       const totalEvents = attendanceRecords.length;
@@ -270,7 +268,7 @@ const studentController = {
     } catch (error) {
       res.status(500).json({
         message: "Error fetching student metrics",
-        error: error.message,
+
       });
     }
   },

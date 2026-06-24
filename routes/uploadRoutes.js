@@ -18,6 +18,7 @@ const upload = multer({
   },
 });
 
+// Public — used by self-service StudentRegistrationPage (no login required)
 router.post(
   "/profile-image",
   (req, res, next) => {

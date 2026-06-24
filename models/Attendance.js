@@ -86,20 +86,13 @@ class Attendance {
   }
 
   static async createBulk(eventId, studentIds) {
-    const values = studentIds
-      .map(
-        (studentId) =>
-          `('${studentId}', ${eventId}, 'Absent', CURRENT_TIMESTAMP)`
-      )
-      .join(",");
-
     const query = `
       INSERT INTO attendance (student_id, event_id, status, check_in_time)
-      VALUES ${values}
+      SELECT unnest($1::text[]), $2::int, 'Absent', CURRENT_TIMESTAMP
       ON CONFLICT (student_id, event_id) DO NOTHING
       RETURNING *
     `;
-    const result = await db.query(query);
+    const result = await db.query(query, [studentIds, eventId]);
     return result.rows;
   }
 

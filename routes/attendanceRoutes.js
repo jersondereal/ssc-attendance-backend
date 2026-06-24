@@ -1,26 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const attendanceController = require('../controllers/attendanceController');
+const attendanceController = require("../controllers/attendanceController");
+const authMiddleware = require("../middleware/auth");
+const roleMiddleware = require("../middleware/roleMiddleware");
 
-// Get attendance for an event
-router.get('/event/:eventId', attendanceController.getEventAttendance);
+const STAFF = ["administrator", "moderator", "president", "vice_president"];
 
-// Get paginated attendance for an event with filters/search/sort
-router.get('/event/:eventId/paginated', attendanceController.getEventAttendancePaginated);
+// Read — any authenticated user
+router.get("/event/:eventId", authMiddleware, attendanceController.getEventAttendance);
+router.get("/event/:eventId/paginated", authMiddleware, attendanceController.getEventAttendancePaginated);
+router.get("/student/:studentId", authMiddleware, attendanceController.getStudentAttendance);
+router.get("/event/:eventId/stats", authMiddleware, attendanceController.getAttendanceStats);
 
-// Get attendance for a student
-router.get('/student/:studentId', attendanceController.getStudentAttendance);
+// Write — staff only
+router.put("/:studentId/:eventId", authMiddleware, roleMiddleware(...STAFF), attendanceController.updateAttendanceStatus);
+router.put("/rfid/:rfid/:eventId", authMiddleware, roleMiddleware(...STAFF), attendanceController.updateAttendanceByRfid);
+router.post("/event/:eventId/initialize", authMiddleware, roleMiddleware(...STAFF), attendanceController.initializeEventAttendance);
 
-// Update attendance status
-router.put('/:studentId/:eventId', attendanceController.updateAttendanceStatus);
-
-// Update attendance using RFID
-router.put('/rfid/:rfid/:eventId', attendanceController.updateAttendanceByRfid);
-
-// Initialize attendance for an event
-router.post('/event/:eventId/initialize', attendanceController.initializeEventAttendance);
-
-// Get attendance statistics
-router.get('/event/:eventId/stats', attendanceController.getAttendanceStats);
-
-module.exports = router; 
+module.exports = router;

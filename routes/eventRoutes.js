@@ -1,23 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const eventController = require('../controllers/eventController');
+const eventController = require("../controllers/eventController");
+const authMiddleware = require("../middleware/auth");
+const roleMiddleware = require("../middleware/roleMiddleware");
 
-// Get all events
-router.get('/', eventController.getAllEvents);
+const STAFF = ["administrator", "moderator", "president", "vice_president"];
 
-// Get events by date
-router.get('/date/:date', eventController.getEventsByDate);
+// Read — any authenticated user
+router.get("/", authMiddleware, eventController.getAllEvents);
+router.get("/date/:date", authMiddleware, eventController.getEventsByDate);
+router.get("/:id", authMiddleware, eventController.getEventById);
 
-// Get single event
-router.get('/:id', eventController.getEventById);
+// Write — staff only
+router.post("/", authMiddleware, roleMiddleware(...STAFF), eventController.createEvent);
+router.put("/:id", authMiddleware, roleMiddleware(...STAFF), eventController.updateEvent);
+router.delete("/:id", authMiddleware, roleMiddleware("administrator", "moderator"), eventController.deleteEvent);
 
-// Create event
-router.post('/', eventController.createEvent);
-
-// Update event
-router.put('/:id', eventController.updateEvent);
-
-// Delete event
-router.delete('/:id', eventController.deleteEvent);
-
-module.exports = router; 
+module.exports = router;

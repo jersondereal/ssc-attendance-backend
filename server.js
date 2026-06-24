@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const dotenv = require("dotenv");
 
 // Import routes
@@ -19,10 +20,27 @@ dotenv.config({ path: ".env.local" });
 
 const app = express();
 
+const allowedOrigins = [
+  "https://essu-ssc.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  ...(process.env.ADDITIONAL_CORS_ORIGINS
+    ? process.env.ADDITIONAL_CORS_ORIGINS.split(",")
+    : []),
+];
+
 // Middleware
+app.use(helmet());
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => {
+      // Allow server-to-server requests (no origin) and whitelisted origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );

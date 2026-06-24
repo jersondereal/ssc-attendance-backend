@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'jinky143';
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 const authMiddleware = (req, res, next) => {
   // Get token from header

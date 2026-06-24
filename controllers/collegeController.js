@@ -8,7 +8,7 @@ const collegeController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching colleges", error: error.message });
+        .json({ message: "Error fetching colleges" });
     }
   },
 
@@ -22,7 +22,7 @@ const collegeController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error fetching college", error: error.message });
+        .json({ message: "Error fetching college" });
     }
   },
 
@@ -47,7 +47,7 @@ const collegeController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error creating college", error: error.message });
+        .json({ message: "Error creating college" });
     }
   },
 
@@ -75,7 +75,7 @@ const collegeController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error updating college", error: error.message });
+        .json({ message: "Error updating college" });
     }
   },
 
@@ -97,7 +97,7 @@ const collegeController = {
     } catch (error) {
       res
         .status(500)
-        .json({ message: "Error deleting college", error: error.message });
+        .json({ message: "Error deleting college" });
     }
   },
 };

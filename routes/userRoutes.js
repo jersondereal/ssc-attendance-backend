@@ -1,17 +1,20 @@
 const express = require("express");
 const router = express.Router();
+const rateLimit = require("express-rate-limit");
 const userController = require("../controllers/userController");
+const authMiddleware = require("../middleware/auth");
+const roleMiddleware = require("../middleware/roleMiddleware");
 
-// Auth routes
-router.post("/login", userController.login);
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { message: "Too many login attempts. Try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-// User management routes
-router.get("/", userController.getAllUsers);
-router.post("/", userController.createUser);
-router.put("/:id", userController.updateUser);
-router.delete("/:id", userController.deleteUser);
-
-// Get client IP address
+// Public routes
+router.post("/login", loginLimiter, userController.login);
 router.get("/ip", (req, res) => {
   const ip =
     req.ip ||
@@ -20,5 +23,11 @@ router.get("/ip", (req, res) => {
     req.connection.socket?.remoteAddress;
   res.json({ ip });
 });
+
+// Protected routes — administrator only
+router.get("/", authMiddleware, userController.getAllUsers);
+router.post("/", authMiddleware, roleMiddleware("administrator"), userController.createUser);
+router.put("/:id", authMiddleware, roleMiddleware("administrator"), userController.updateUser);
+router.delete("/:id", authMiddleware, roleMiddleware("administrator"), userController.deleteUser);
 
 module.exports = router;
