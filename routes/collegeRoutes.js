@@ -4,9 +4,9 @@ const collegeController = require("../controllers/collegeController");
 const authMiddleware = require("../middleware/auth");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// Read — any authenticated user
-router.get("/", authMiddleware, collegeController.getAllColleges);
-router.get("/:id", authMiddleware, collegeController.getCollegeById);
+// Read — public (needed by the self-service /register page); no login required
+router.get("/", collegeController.getAllColleges);
+router.get("/:id", collegeController.getCollegeById);
 
 // Write — administrator only
 router.post("/", authMiddleware, roleMiddleware("administrator"), collegeController.createCollege);
