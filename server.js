@@ -14,6 +14,7 @@ const collegeRoutes = require("./routes/collegeRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const { startAttendanceHistoryCleanup } = require("./utils/attendanceHistoryCleanup");
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
@@ -75,4 +76,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  startAttendanceHistoryCleanup();
 });

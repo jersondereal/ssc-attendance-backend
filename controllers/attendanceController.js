@@ -52,7 +52,8 @@ const attendanceController = {
       const attendance = await Attendance.updateStatus(
         studentId,
         eventId,
-        status
+        status,
+        { changedBy: req.user?.userId, changedVia: "manual" }
       );
       if (!attendance) {
         return res.status(404).json({ message: "Attendance record not found" });
@@ -93,6 +94,19 @@ const attendanceController = {
     }
   },
 
+  async getEventAttendanceHistory(req, res) {
+    try {
+      const { eventId } = req.params;
+      const { limit = 20 } = req.query;
+      const history = await Attendance.getHistoryByEvent(eventId, parseInt(limit, 10));
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching attendance history",
+      });
+    }
+  },
+
   async updateAttendanceByRfid(req, res) {
     try {
       const { rfid, eventId } = req.params;
@@ -109,7 +123,8 @@ const attendanceController = {
       const attendance = await Attendance.updateStatus(
         student.student_id,
         eventId,
-        "Present"
+        "Present",
+        { changedBy: req.user?.userId, changedVia: "rfid" }
       );
       if (!attendance) {
         return res.status(404).json({ message: "Attendance record not found" });

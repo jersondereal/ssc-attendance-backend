@@ -74,15 +74,58 @@ class Attendance {
     return result.rows;
   }
 
-  static async updateStatus(studentId, eventId, status) {
+  static async updateStatus(studentId, eventId, status, { changedBy = null, changedVia = "manual" } = {}) {
+    const client = await db.connect();
+    try {
+      await client.query("BEGIN");
+
+      const current = await client.query(
+        `SELECT id, status FROM attendance WHERE student_id = $1 AND event_id = $2 FOR UPDATE`,
+        [studentId, eventId]
+      );
+      if (current.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return null;
+      }
+      const { id: attendanceId, status: previousStatus } = current.rows[0];
+
+      const updated = await client.query(
+        `UPDATE attendance
+         SET status = $1, check_in_time = CURRENT_TIMESTAMP
+         WHERE id = $2
+         RETURNING *`,
+        [status, attendanceId]
+      );
+
+      await client.query(
+        `INSERT INTO attendance_history
+           (attendance_id, student_id, event_id, previous_status, new_status, changed_by, changed_via)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [attendanceId, studentId, eventId, previousStatus, status, changedBy, changedVia]
+      );
+
+      await client.query("COMMIT");
+      return updated.rows[0];
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getHistoryByEvent(eventId, limit = 20) {
     const query = `
-      UPDATE attendance 
-      SET status = $1, check_in_time = CURRENT_TIMESTAMP
-      WHERE student_id = $2 AND event_id = $3
-      RETURNING *
+      SELECT ah.id, ah.student_id, s.name AS student_name,
+             ah.previous_status, ah.new_status, ah.changed_via, ah.changed_at
+      FROM attendance_history ah
+      LEFT JOIN students s ON ah.student_id = s.student_id
+      WHERE ah.event_id = $1
+      ORDER BY ah.changed_at DESC
+      LIMIT $2
     `;
-    const result = await db.query(query, [status, studentId, eventId]);
-    return result.rows[0];
+    const result = await db.query(query, [eventId, limit]);
+    return result.rows;
   }
 
   static async createBulk(eventId, studentIds) {

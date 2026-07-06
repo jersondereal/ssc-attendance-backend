@@ -6,6 +6,7 @@
 -- =============================================================================
 
 -- Drop tables if they exist (in reverse order of dependencies)
+DROP TABLE IF EXISTS attendance_history;
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS students;
@@ -91,6 +92,18 @@ CREATE TABLE attendance (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(student_id, event_id) -- Prevent duplicate attendance records
 );
+-- Create attendance_history table (insert-only audit log of status changes)
+CREATE TABLE attendance_history (
+    id SERIAL PRIMARY KEY,
+    attendance_id INTEGER REFERENCES attendance(id) ON DELETE CASCADE,
+    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE,
+    event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+    previous_status VARCHAR(20) CHECK (previous_status IN ('Present', 'Absent', 'Excused')),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('Present', 'Absent', 'Excused')),
+    changed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    changed_via VARCHAR(20) NOT NULL DEFAULT 'manual' CHECK (changed_via IN ('manual', 'rfid')),
+    changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 -- Create indexes for better query performance
 CREATE INDEX idx_colleges_code ON colleges(code);
 CREATE INDEX idx_students_college ON students(college);
@@ -98,6 +111,10 @@ CREATE INDEX idx_students_year ON students(year);
 CREATE INDEX idx_students_section ON students(section);
 CREATE INDEX idx_attendance_student_id ON attendance(student_id);
 CREATE INDEX idx_attendance_event_id ON attendance(event_id);
+CREATE INDEX idx_attendance_history_attendance_id ON attendance_history(attendance_id);
+CREATE INDEX idx_attendance_history_student_id ON attendance_history(student_id);
+CREATE INDEX idx_attendance_history_event_id ON attendance_history(event_id);
+CREATE INDEX idx_attendance_history_changed_at ON attendance_history(changed_at);
 CREATE INDEX idx_events_date ON events(event_date);
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP;

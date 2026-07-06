@@ -11,6 +11,7 @@ router.get("/event/:eventId", authMiddleware, attendanceController.getEventAtten
 router.get("/event/:eventId/paginated", authMiddleware, attendanceController.getEventAttendancePaginated);
 router.get("/student/:studentId", authMiddleware, attendanceController.getStudentAttendance);
 router.get("/event/:eventId/stats", authMiddleware, attendanceController.getAttendanceStats);
+router.get("/event/:eventId/history", authMiddleware, attendanceController.getEventAttendanceHistory);
 
 // Write — staff only
 router.put("/:studentId/:eventId", authMiddleware, roleMiddleware(...STAFF), attendanceController.updateAttendanceStatus);
