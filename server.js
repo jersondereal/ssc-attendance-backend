@@ -1,5 +1,4 @@
 const express = require("express");
-const http = require("http");
 const cors = require("cors");
 const helmet = require("helmet");
 const dotenv = require("dotenv");
@@ -16,13 +15,11 @@ const settingsRoutes = require("./routes/settingsRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const { startAttendanceHistoryCleanup } = require("./utils/attendanceHistoryCleanup");
-const { initSocket } = require("./utils/socket");
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
 
 const app = express();
-const server = http.createServer(app);
 
 const allowedOrigins = [
   "https://essu-ssc.vercel.app",
@@ -32,8 +29,6 @@ const allowedOrigins = [
     ? process.env.ADDITIONAL_CORS_ORIGINS.split(",")
     : []),
 ];
-
-initSocket(server, allowedOrigins);
 
 // Middleware
 app.use(helmet());
@@ -79,7 +74,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   startAttendanceHistoryCleanup();
 });

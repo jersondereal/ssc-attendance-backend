@@ -1,5 +1,4 @@
 const db = require("../config/database");
-const { emitAttendanceHistoryCreated } = require("../utils/socket");
 
 class Attendance {
   static async findByEvent(eventId) {
@@ -103,30 +102,14 @@ class Attendance {
         [status, attendanceId]
       );
 
-      const history = await client.query(
+      await client.query(
         `INSERT INTO attendance_history
            (attendance_id, student_id, event_id, previous_status, new_status, changed_by, changed_via)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING id, changed_at`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [attendanceId, studentId, eventId, previousStatus, status, changedBy, changedVia]
       );
 
       await client.query("COMMIT");
-
-      const studentResult = await db.query(
-        "SELECT name FROM students WHERE student_id = $1",
-        [studentId]
-      );
-      emitAttendanceHistoryCreated(eventId, {
-        id: history.rows[0].id,
-        student_id: studentId,
-        student_name: studentResult.rows[0]?.name ?? null,
-        previous_status: previousStatus,
-        new_status: status,
-        changed_via: changedVia,
-        changed_at: history.rows[0].changed_at,
-      });
-
       return updated.rows[0];
     } catch (error) {
       await client.query("ROLLBACK");
