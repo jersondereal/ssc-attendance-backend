@@ -144,6 +144,22 @@ class Attendance {
     return result.rows;
   }
 
+  // Enroll a single student into every present/upcoming event (Absent by
+  // default). Past events are skipped — the student wasn't registered when
+  // those happened, so they shouldn't be marked absent or fined for them.
+  static async createForStudentInCurrentAndUpcomingEvents(studentId) {
+    const query = `
+      INSERT INTO attendance (student_id, event_id, status, check_in_time)
+      SELECT $1::text, e.id, 'Absent', CURRENT_TIMESTAMP
+      FROM events e
+      WHERE e.event_date >= CURRENT_DATE
+      ON CONFLICT (student_id, event_id) DO NOTHING
+      RETURNING *
+    `;
+    const result = await db.query(query, [studentId]);
+    return result.rows;
+  }
+
   static async getAttendanceStats(eventId) {
     const query = `
       SELECT 

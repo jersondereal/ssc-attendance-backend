@@ -1,5 +1,6 @@
 const Student = require("../models/Student");
 const College = require("../models/College");
+const Attendance = require("../models/Attendance");
 
 const normalizeStudentInput = (body) => {
   const rawRfid = body?.rfid;
@@ -112,6 +113,21 @@ const studentController = {
         }
       }
       const student = await Student.create(input);
+
+      // Enroll the new student into all present/upcoming events so they show
+      // up in those events' attendance. Best-effort: registration itself has
+      // already succeeded, so a failure here shouldn't fail the request.
+      try {
+        await Attendance.createForStudentInCurrentAndUpcomingEvents(
+          student.student_id
+        );
+      } catch (enrollError) {
+        console.error(
+          "Failed to enroll new student in upcoming events:",
+          enrollError
+        );
+      }
+
       res.status(201).json(formatStudentResponse(student));
     } catch (error) {
       console.error(error);
