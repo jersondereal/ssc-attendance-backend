@@ -80,7 +80,7 @@ class Attendance {
       await client.query("BEGIN");
 
       const current = await client.query(
-        `SELECT id, status FROM attendance WHERE student_id = $1 AND event_id = $2 FOR UPDATE`,
+        `SELECT * FROM attendance WHERE student_id = $1 AND event_id = $2 FOR UPDATE`,
         [studentId, eventId]
       );
       if (current.rows.length === 0) {
@@ -88,6 +88,11 @@ class Attendance {
         return null;
       }
       const { id: attendanceId, status: previousStatus } = current.rows[0];
+
+      if (previousStatus === status) {
+        await client.query("ROLLBACK");
+        return current.rows[0];
+      }
 
       const updated = await client.query(
         `UPDATE attendance
