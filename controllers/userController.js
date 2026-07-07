@@ -110,7 +110,7 @@ const userController = {
   async updateUser(req, res) {
     try {
       const { id } = req.params;
-      const { username, password, role } = req.body;
+      const { username, password, role, currentPassword } = req.body;
 
       // Check if username already exists for other users
       const existingUser = await User.findByUsername(username);
@@ -124,6 +124,21 @@ const userController = {
 
       if (password && password.length < 8) {
         return res.status(400).json({ message: 'Password must be at least 8 characters' });
+      }
+
+      // Changing the password requires knowing the current one.
+      if (password) {
+        const targetUser = await User.findById(id);
+        if (!targetUser) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        if (!currentPassword) {
+          return res.status(400).json({ message: 'Current password is required to change the password' });
+        }
+        const isCurrentValid = await User.comparePassword(currentPassword, targetUser.password);
+        if (!isCurrentValid) {
+          return res.status(401).json({ message: 'Current password is incorrect' });
+        }
       }
 
       // Update user with optional password update

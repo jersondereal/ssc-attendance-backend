@@ -15,6 +15,17 @@ class User {
     }
   }
 
+  static async findById(id) {
+    try {
+      const query = 'SELECT * FROM users WHERE id = $1';
+      const result = await db.query(query, [id]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error in findById:', error);
+      throw new Error('Database error while finding user');
+    }
+  }
+
   static async create(username, password, role) {
     try {
       // Hash the password before storing
