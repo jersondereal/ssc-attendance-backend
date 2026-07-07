@@ -43,20 +43,21 @@ const eventController = {
 
   async createEvent(req, res) {
     try {
-      const { title, event_date, location, fine, sections, schoolYears } =
+      const { title, event_date, event_time, location, fine, sections, schoolYears } =
         req.body;
       const colleges = req.body.colleges ?? req.body.courses;
 
       // Validate required fields
-      if (!title || !event_date || !location || fine === undefined) {
+      if (!title || !event_date || !event_time || !location || fine === undefined) {
         return res.status(400).json({
-          message: "Missing required fields: title, event_date, location, fine",
+          message: "Missing required fields: title, event_date, event_time, location, fine",
         });
       }
 
       const event = await Event.create({
         title,
         event_date,
+        event_time,
         location,
         fine,
         colleges,
@@ -74,20 +75,21 @@ const eventController = {
 
   async updateEvent(req, res) {
     try {
-      const { title, event_date, location, fine, sections, schoolYears } =
+      const { title, event_date, event_time, location, fine, sections, schoolYears } =
         req.body;
       const colleges = req.body.colleges ?? req.body.courses;
 
       // Validate required fields
-      if (!title || !event_date || !location || fine === undefined) {
+      if (!title || !event_date || !event_time || !location || fine === undefined) {
         return res.status(400).json({
-          message: "Missing required fields: title, event_date, location, fine",
+          message: "Missing required fields: title, event_date, event_time, location, fine",
         });
       }
 
       const event = await Event.update(req.params.id, {
         title,
         event_date,
+        event_time,
         location,
         fine,
         colleges,

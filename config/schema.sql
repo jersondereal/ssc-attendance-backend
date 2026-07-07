@@ -72,6 +72,7 @@ CREATE TABLE events (
     id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     event_date DATE NOT NULL,
+    event_time TIME NOT NULL DEFAULT '00:00:00',
     location VARCHAR(100) NOT NULL,
     fine DECIMAL(10, 2) NOT NULL,
     courses JSONB,

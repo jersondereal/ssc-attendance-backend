@@ -94,19 +94,20 @@ class Event {
   }
 
   static async create(eventData) {
-    const { title, event_date, location, fine, sections, schoolYears } =
+    const { title, event_date, event_time, location, fine, sections, schoolYears } =
       eventData;
     const colleges = eventData.colleges ?? eventData.courses;
 
     // Create the event
     const eventQuery = `
-      INSERT INTO events (title, event_date, location, fine, courses, sections, school_years)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO events (title, event_date, event_time, location, fine, courses, sections, school_years)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
     const eventResult = await db.query(eventQuery, [
       title,
       event_date,
+      event_time,
       location,
       fine,
       JSON.stringify(
@@ -127,19 +128,20 @@ class Event {
   }
 
   static async update(id, eventData) {
-    const { title, event_date, location, fine, sections, schoolYears } =
+    const { title, event_date, event_time, location, fine, sections, schoolYears } =
       eventData;
     const colleges = eventData.colleges ?? eventData.courses;
     const query = `
-      UPDATE events 
-      SET title = $1, event_date = $2, location = $3, fine = $4, 
-          courses = $5, sections = $6, school_years = $7
-      WHERE id = $8
+      UPDATE events
+      SET title = $1, event_date = $2, event_time = $3, location = $4, fine = $5,
+          courses = $6, sections = $7, school_years = $8
+      WHERE id = $9
       RETURNING *
     `;
     const result = await db.query(query, [
       title,
       event_date,
+      event_time,
       location,
       fine,
       JSON.stringify(
