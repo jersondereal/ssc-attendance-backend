@@ -166,6 +166,7 @@ class Student {
       FROM events e
       LEFT JOIN attendance a ON e.id = a.event_id AND a.student_id = $1
       WHERE a.student_id IS NOT NULL
+        AND e.event_date <= CURRENT_DATE
       ORDER BY e.event_date DESC
     `;
     const result = await db.query(query, [studentId]);

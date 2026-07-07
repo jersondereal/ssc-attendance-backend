@@ -166,6 +166,7 @@ class Attendance {
       FROM attendance a
       JOIN events e ON a.event_id = e.id
       WHERE a.student_id = $1 AND a.status = 'Absent'
+        AND e.event_date <= CURRENT_DATE
       ORDER BY e.event_date DESC
     `;
     const result = await db.query(query, [studentId]);
@@ -188,9 +189,10 @@ class Attendance {
       SELECT COALESCE(SUM(e.fine), 0) as total_unpaid
       FROM attendance a
       JOIN events e ON a.event_id = e.id
-      WHERE a.student_id = $1 
-        AND a.status = 'Absent' 
+      WHERE a.student_id = $1
+        AND a.status = 'Absent'
         AND a.is_paid = false
+        AND e.event_date <= CURRENT_DATE
     `;
     const result = await db.query(query, [studentId]);
     return result.rows[0].total_unpaid;
