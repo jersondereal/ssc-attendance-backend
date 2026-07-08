@@ -21,6 +21,13 @@ dotenv.config({ path: ".env.local" });
 
 const app = express();
 
+// Render (and most PaaS) put the app behind a single reverse proxy. Trust
+// exactly one hop so req.ip reflects the real client IP (from X-Forwarded-For)
+// — required for express-rate-limit to key per-user instead of lumping every
+// visitor under the proxy's IP. Use 1, not `true`, so the header can't be
+// spoofed to bypass the limiter.
+app.set("trust proxy", 1);
+
 const allowedOrigins = [
   "https://essu-ssc.vercel.app",
   "http://localhost:5173",
