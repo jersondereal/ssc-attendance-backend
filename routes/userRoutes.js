@@ -7,7 +7,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30,
+  max: 500,
   // Only count failed logins toward the limit, so successful logins (e.g. the
   // frontend's auto-login) don't burn the budget — this stays a brute-force
   // guard, not a general request cap.
