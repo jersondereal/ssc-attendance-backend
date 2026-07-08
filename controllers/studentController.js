@@ -2,6 +2,20 @@ const Student = require("../models/Student");
 const College = require("../models/College");
 const Attendance = require("../models/Attendance");
 
+// Students sometimes type their ID without the dash (e.g. "26001274" instead
+// of "26-001274"), which fails the valid_student_id format check. If the ID is
+// all digits with no dash, insert one after the first 2 (year) digits so it
+// still saves. Values that already contain a dash (or aren't all digits) are
+// left untouched — the format check still guards those.
+const normalizeStudentId = (rawId) => {
+  if (typeof rawId !== "string") return rawId;
+  const trimmed = rawId.trim();
+  if (/^\d+$/.test(trimmed) && trimmed.length > 2) {
+    return `${trimmed.slice(0, 2)}-${trimmed.slice(2)}`;
+  }
+  return trimmed;
+};
+
 const normalizeStudentInput = (body) => {
   const rawRfid = body?.rfid;
   const trimmedRfid = typeof rawRfid === "string" ? rawRfid.trim() : rawRfid;
@@ -25,6 +39,7 @@ const normalizeStudentInput = (body) => {
 
   return {
     ...body,
+    student_id: normalizeStudentId(body?.student_id),
     name: capitalizedName,
     college: body.college ?? body.course,
     rfid: trimmedRfid ? trimmedRfid : null,
