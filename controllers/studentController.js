@@ -170,6 +170,10 @@ const studentController = {
         duplicateFallback: req.body?.allow_duplicate_fallback === true,
       });
 
+      console.log(
+        `[register] Student registered: ${student.student_id} - ${student.name} (${student.college}, ${student.year}-${student.section}) at ${new Date().toISOString()}`
+      );
+
       // Enroll the new student into all present/upcoming events so they show
       // up in those events' attendance. Best-effort: registration itself has
       // already succeeded, so a failure here shouldn't fail the request.
