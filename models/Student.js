@@ -100,16 +100,21 @@ class Student {
     return result.rows[0];
   }
 
+  // `studentId` is the ORIGINAL id used to locate the row. `studentData` may
+  // carry a new `student_id` to rename to — the FKs cascade the change to
+  // attendance/attendance_history on update.
   static async update(studentId, studentData) {
     const { name, year, section, rfid, profile_image_url } = studentData;
     const college = studentData.college ?? studentData.course;
+    const newStudentId = studentData.student_id ?? studentId;
     const query = `
-      UPDATE students 
-      SET name = $1, college = $2, year = $3, section = $4, rfid = $5, profile_image_url = $6
-      WHERE student_id = $7
+      UPDATE students
+      SET student_id = $1, name = $2, college = $3, year = $4, section = $5, rfid = $6, profile_image_url = $7
+      WHERE student_id = $8
       RETURNING *
     `;
     const result = await db.query(query, [
+      newStudentId,
       name,
       college,
       year,

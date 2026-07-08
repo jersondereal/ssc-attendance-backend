@@ -84,7 +84,7 @@ CREATE TABLE events (
 -- Create attendance table
 CREATE TABLE attendance (
     id SERIAL PRIMARY KEY,
-    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE,
+    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('Present', 'Absent', 'Excused')),
     is_paid BOOLEAN DEFAULT false NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE attendance (
 CREATE TABLE attendance_history (
     id SERIAL PRIMARY KEY,
     attendance_id INTEGER REFERENCES attendance(id) ON DELETE CASCADE,
-    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE,
+    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     previous_status VARCHAR(20) CHECK (previous_status IN ('Present', 'Absent', 'Excused')),
     new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('Present', 'Absent', 'Excused')),
