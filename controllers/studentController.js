@@ -147,7 +147,13 @@ const studentController = {
           return res.status(400).json({ message: "Invalid college code" });
         }
       }
-      const student = await Student.create(input);
+      // Self-service registration opts into the duplicate-ID fallback so a
+      // student whose ID is already taken still gets registered (with a
+      // " (n)"-suffixed ID) instead of hitting an error. Admin-side adds omit
+      // the flag, so they still get the normal "already exists" error.
+      const student = await Student.create(input, {
+        duplicateFallback: req.body?.allow_duplicate_fallback === true,
+      });
 
       // Enroll the new student into all present/upcoming events so they show
       // up in those events' attendance. Best-effort: registration itself has

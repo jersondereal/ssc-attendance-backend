@@ -65,7 +65,7 @@ CREATE TABLE students (
     profile_image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT valid_student_id CHECK (student_id ~ '^\d{2}-\d{4,10}$') -- Ensures format YY-XXXX through YY-XXXXXXXXXX
+    CONSTRAINT valid_student_id CHECK (student_id ~ '^\d{2}-\d{4,10}( \(\d+\))?$') -- YY-XXXX..YY-XXXXXXXXXX, optional " (n)" duplicate-fallback suffix
 );
 -- Create events table
 CREATE TABLE events (

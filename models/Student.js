@@ -79,7 +79,7 @@ class Student {
     return result.rows[0];
   }
 
-  static async create(studentData) {
+  static async create(studentData, { duplicateFallback = false } = {}) {
     const { student_id, name, year, section, rfid, profile_image_url } =
       studentData;
     const college = studentData.college ?? studentData.course;
@@ -88,16 +88,38 @@ class Student {
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
-    const result = await db.query(query, [
-      student_id,
+    const buildParams = (id) => [
+      id,
       name,
       college,
       year,
       section,
       rfid,
       profile_image_url ?? null,
-    ]);
-    return result.rows[0];
+    ];
+
+    // Temporary duplicate-ID fallback (self-service registration only): if the
+    // entered student_id is already taken, don't fail — retry with " (1)",
+    // " (2)", ... appended until it inserts, so the student still gets in.
+    // Admins reconcile these suffixed rows later. Only student_id collisions
+    // are retried; any other error (incl. RFID duplicates) still throws.
+    const MAX_ATTEMPTS = 1000;
+    let candidateId = student_id;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const result = await db.query(query, buildParams(candidateId));
+        return result.rows[0];
+      } catch (err) {
+        const isStudentIdDuplicate =
+          err.code === "23505" &&
+          err.constraint === "students_student_id_key";
+        if (duplicateFallback && isStudentIdDuplicate && attempt < MAX_ATTEMPTS) {
+          candidateId = `${student_id} (${attempt + 1})`;
+          continue;
+        }
+        throw err;
+      }
+    }
   }
 
   // `studentId` is the ORIGINAL id used to locate the row. `studentData` may
