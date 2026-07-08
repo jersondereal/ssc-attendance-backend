@@ -79,6 +79,16 @@ class Student {
     return result.rows[0];
   }
 
+  // Return the student with this exact ID plus any duplicate-fallback variants
+  // (e.g. "24-0951", "24-0951 (1)", "24-0951 (2)"). Used to detect whether a
+  // registrant already exists (same base ID + same name).
+  static async findByBaseId(baseStudentId) {
+    const query =
+      "SELECT * FROM students WHERE student_id = $1 OR student_id LIKE $1 || ' (%'";
+    const result = await db.query(query, [baseStudentId]);
+    return result.rows;
+  }
+
   static async create(studentData, { duplicateFallback = false } = {}) {
     const { student_id, name, year, section, rfid, profile_image_url } =
       studentData;

@@ -162,6 +162,26 @@ const studentController = {
           return res.status(400).json({ message: "Invalid college code" });
         }
       }
+      // If the entered ID (or one of its " (n)" duplicate variants) already
+      // belongs to a student with the SAME name, this is the same person
+      // re-registering — don't create another duplicate row, just tell them
+      // they're already registered.
+      const existing = await Student.findByBaseId(input.student_id);
+      if (existing.length > 0) {
+        const normalizeName = (n) =>
+          (n ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+        const incomingName = normalizeName(input.name);
+        const alreadyRegistered = existing.some(
+          (s) => normalizeName(s.name) === incomingName
+        );
+        if (alreadyRegistered) {
+          return res.status(409).json({
+            alreadyRegistered: true,
+            message: "This student is already registered.",
+          });
+        }
+      }
+
       // Self-service registration opts into the duplicate-ID fallback so a
       // student whose ID is already taken still gets registered (with a
       // " (n)"-suffixed ID) instead of hitting an error. Admin-side adds omit
