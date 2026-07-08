@@ -37,6 +37,41 @@ const normalizeStudentInput = (body) => {
   };
 };
 
+// Translate a Postgres error into a descriptive, user-facing message.
+// Codes: https://www.postgresql.org/docs/current/errcodes-appendix.html
+const describeStudentDbError = (error) => {
+  switch (error?.code) {
+    case "23505": // unique_violation
+      if (
+        error.constraint === "students_student_id_key" ||
+        error.constraint === "students_pkey"
+      ) {
+        return { status: 409, message: "A student with this student ID already exists." };
+      }
+      if (error.constraint === "students_rfid_key") {
+        return { status: 409, message: "This RFID is already assigned to another student." };
+      }
+      return {
+        status: 409,
+        message: error.detail || "A student with these details already exists.",
+      };
+    case "23514": // check_violation
+      if (error.constraint === "valid_student_id") {
+        return {
+          status: 400,
+          message: "Student ID must be in the format YY-XXXX or YY-XXXXXX (e.g. 21-0001 or 21-000001).",
+        };
+      }
+      return { status: 400, message: error.detail || "A field failed a validation rule." };
+    case "23502": // not_null_violation
+      return { status: 400, message: `${error.column || "A required field"} is required.` };
+    case "22001": // string_data_right_truncation
+      return { status: 400, message: "One of the fields is longer than allowed." };
+    default:
+      return { status: 500, message: error?.message || "Something went wrong." };
+  }
+};
+
 const formatStudentResponse = (student) => {
   if (!student) return student;
   const college = student.college ?? student.course;
@@ -131,9 +166,8 @@ const studentController = {
       res.status(201).json(formatStudentResponse(student));
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ message: "Error creating student" });
+      const { status, message } = describeStudentDbError(error);
+      res.status(status).json({ message });
     }
   },
 
@@ -154,9 +188,8 @@ const studentController = {
       res.json(formatStudentResponse(student));
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ message: "Error updating student" });
+      const { status, message } = describeStudentDbError(error);
+      res.status(status).json({ message });
     }
   },
 
