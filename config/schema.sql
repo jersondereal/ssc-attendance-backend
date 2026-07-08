@@ -56,7 +56,7 @@ CREATE TABLE colleges (
 -- Create students table
 CREATE TABLE students (
     id SERIAL PRIMARY KEY,
-    student_id VARCHAR(10) UNIQUE NOT NULL,
+    student_id VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
     college VARCHAR(50) NOT NULL,
     year VARCHAR(2) NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE students (
     profile_image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT valid_student_id CHECK (student_id ~ '^\d{2}-(\d{4}|\d{6})$') -- Ensures format YY-XXXX or YY-XXXXXX
+    CONSTRAINT valid_student_id CHECK (student_id ~ '^\d{2}-\d{4,10}$') -- Ensures format YY-XXXX through YY-XXXXXXXXXX
 );
 -- Create events table
 CREATE TABLE events (
@@ -84,7 +84,7 @@ CREATE TABLE events (
 -- Create attendance table
 CREATE TABLE attendance (
     id SERIAL PRIMARY KEY,
-    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    student_id VARCHAR(20) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('Present', 'Absent', 'Excused')),
     is_paid BOOLEAN DEFAULT false NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE attendance (
 CREATE TABLE attendance_history (
     id SERIAL PRIMARY KEY,
     attendance_id INTEGER REFERENCES attendance(id) ON DELETE CASCADE,
-    student_id VARCHAR(10) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    student_id VARCHAR(20) REFERENCES students(student_id) ON DELETE CASCADE ON UPDATE CASCADE,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     previous_status VARCHAR(20) CHECK (previous_status IN ('Present', 'Absent', 'Excused')),
     new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('Present', 'Absent', 'Excused')),

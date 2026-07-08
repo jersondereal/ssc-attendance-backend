@@ -59,7 +59,7 @@ const describeStudentDbError = (error) => {
       if (error.constraint === "valid_student_id") {
         return {
           status: 400,
-          message: "Student ID must be in the format YY-XXXX or YY-XXXXXX (e.g. 21-0001 or 21-000001).",
+          message: "Student ID must start with a 2-digit year followed by a dash (e.g. 21-0001).",
         };
       }
       return { status: 400, message: error.detail || "A field failed a validation rule." };
